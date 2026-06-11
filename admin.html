@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Admin Panel 🍧</title>
+
+  <style>
+    body {
+      font-family: Arial;
+      background: #f4f4f4;
+      padding: 20px;
+    }
+
+    .order {
+      background: white;
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 10px;
+      box-shadow: 0 0 10px #ccc;
+    }
+
+    button {
+      margin-right: 10px;
+      padding: 5px 10px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+
+<h1>🍧 Fruitizzzz Admin Panel</h1>
+
+<div id="orders">Loading...</div>
+
+<script>
+const API = "https://fruitizzzz-backend.onrender.com/api/admin/orders";
+
+function loadOrders() {
+  fetch(API)
+    .then(res => res.json())
+    .then(data => {
+      const box = document.getElementById("orders");
+      box.innerHTML = "";
+
+      data.forEach(order => {
+        const div = document.createElement("div");
+        div.className = "order";
+
+        div.innerHTML = `
+          <p><b>Total:</b> ₹${order.total}</p>
+          <p><b>Status:</b> ${order.status}</p>
+
+          <button onclick="updateStatus('${order._id}', 'Delivered')">
+            Mark Delivered
+          </button>
+
+          <button onclick="deleteOrder('${order._id}')">
+            Delete
+          </button>
+        `;
+
+        box.appendChild(div);
+      });
+    });
+}
+
+function updateStatus(id, status) {
+  fetch(`https://fruitizzzz-backend.onrender.com/api/admin/orders/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ status })
+  }).then(() => loadOrders());
+}
+
+function deleteOrder(id) {
+  fetch(`https://fruitizzzz-backend.onrender.com/api/admin/orders/${id}`, {
+    method: "DELETE"
+  }).then(() => loadOrders());
+}
+
+loadOrders();
+</script>
+
+</body>
+</html>

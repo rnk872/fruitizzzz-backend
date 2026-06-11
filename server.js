@@ -1,65 +1,114 @@
 const express = require("express");
 const cors = require("cors");
+const mongoose = require("mongoose");
+const jwt = require("jsonwebtoken");
 require("dotenv").config();
 
 const app = express();
 
+/* =========================
+   ADMIN CREDENTIALS
+========================= */
+const ADMIN_USER = "admin";
+const ADMIN_PASS = "12345";
+
+/* =========================
+   MIDDLEWARE
+========================= */
 app.use(cors());
 app.use(express.json());
 
-/* =======================
-   MENU ROUTE (INLINE FIX)
-   NO IMPORT PROBLEMS
-======================= */
+/* =========================
+   DATABASE CONNECTION
+========================= */
+mongoose.connect(process.env.MONGO_URL)
+  .then(() => console.log("🍃 MongoDB Connected"))
+  .catch(err => console.log("MongoDB Error ❌", err));
 
-app.get("/api/menu", (req, res) => {
-  res.json([
-    {
-      id: 1,
-      name: "🥭 Mango Shell Ice Cream",
-      price: 149,
-      category: "icecream"
-    },
-    {
-      id: 2,
-      name: "🍓 Strawberry Shake",
-      price: 99,
-      category: "shakes"
-    },
-    {
-      id: 3,
-      name: "🍍 Pineapple Salad",
-      price: 119,
-      category: "salad"
-    },
-    {
-      id: 4,
-      name: "🍹 Mint Mojito",
-      price: 89,
-      category: "mojitos"
-    }
-  ]);
-});
+/* =========================
+   ROUTES IMPORT
+========================= */
+const menuRoutes = require("./routes/menu");
+const orderRoutes = require("./routes/order");
+const adminRoutes = require("./routes/admin");
 
-/* =======================
-   BASIC ROUTES
-======================= */
-
+/* =========================
+   HEALTH CHECK
+========================= */
 app.get("/", (req, res) => {
-  res.send("🍧 Fruit Shell Backend Running 🚀");
+  res.send("🍓 Fruitizzzz backend running successfully 🚀");
 });
 
-app.get("/test", (req, res) => {
-  res.json({ ok: true, message: "Server is working perfectly ✅" });
+app.get("/health", (req, res) => {
+  res.json({ status: "ok" });
 });
 
-/* =======================
+/* =========================
+   ADMIN LOGIN API
+========================= */
+app.post("/api/admin/login", (req, res) => {
+  const { username, password } = req.body;
+
+  if (username === ADMIN_USER && password === ADMIN_PASS) {
+    const token = jwt.sign(
+      { role: "admin" },
+      "secretkey",
+      { expiresIn: "1d" }
+    );
+
+    return res.json({
+      success: true,
+      token
+    });
+  }
+
+  return res.status(401).json({
+    success: false,
+    message: "Invalid credentials"
+  });
+});
+
+/* =========================
+   SIMPLE ADMIN AUTH CHECK
+========================= */
+function verifyAdmin(req, res, next) {
+  const token = req.headers.authorization;
+
+  if (!token) {
+    return res.status(403).json({ message: "No token provided" });
+  }
+
+  try {
+    jwt.verify(token, "secretkey");
+    next();
+  } catch (err) {
+    return res.status(403).json({ message: "Invalid token" });
+  }
+}
+
+/* =========================
+   API ROUTES
+========================= */
+app.use("/api/menu", menuRoutes);
+app.use("/api/order", orderRoutes);
+app.use("/api/admin", adminRoutes);
+/* =========================
+   ERROR HANDLER
+========================= */
+app.use((err, req, res, next) => {
+  console.error(err);
+  res.status(500).json({ message: "Server error" });
+});
+
+/* =========================
    START SERVER
-======================= */
-
+========================= */
 const PORT = process.env.PORT || 5000;
-
 app.listen(PORT, () => {
-  console.log("Server running on port", PORT);
+  console.log(`🚀 Server running on port ${PORT}`);
 });
+
+
+
+
 
