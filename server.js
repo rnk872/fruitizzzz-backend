@@ -1,34 +1,38 @@
 const express = require("express");
-const mongoose = require("mongoose");
 const cors = require("cors");
+const mongoose = require("mongoose");
 require("dotenv").config();
 
-// ================= ROUTES =================
-const productRoutes = require("./routes/productRoutes");
-const dashboardRoutes = require("./routes/dashboardRoutes");
-const authRoutes = require("./routes/authRoutes");
-const orderRoutes = require("./routes/orderRoutes");
-const otpRoutes = require("./routes/otpRoutes");
-
-// ================= APP =================
 const app = express();
 
-// Middlewares
+/* =======================
+   MIDDLEWARE
+======================= */
 app.use(cors());
 app.use(express.json());
 
-// ================= API ROUTES =================
-app.use("/api/products", productRoutes);
-app.use("/api/dashboard", dashboardRoutes);
-app.use("/api/auth", authRoutes);
-app.use("/api/orders", orderRoutes);
-app.use("/api/otp", otpRoutes);
+/* =======================
+   DATABASE CONNECTION
+======================= */
+mongoose.connect(process.env.MONGO_URL)
+  .then(() => console.log("MongoDB Connected ✅"))
+  .catch(err => console.log("MongoDB Error ❌", err));
 
-// ================= TEST ROUTES =================
+/* =======================
+   ROUTES IMPORT
+======================= */
+const menuRoutes = require("./routes/menu");
+
+/* =======================
+   BASIC ROUTES
+======================= */
+
+// Home route
 app.get("/", (req, res) => {
-  res.send("🍓 Fruitizzzz backend running successfully 🚀");
+  res.send("🍧 Fruitizzzz backend running successfully 🚀");
 });
 
+// Test route
 app.get("/test", (req, res) => {
   res.json({
     ok: true,
@@ -36,14 +40,19 @@ app.get("/test", (req, res) => {
   });
 });
 
-// ================= MONGODB =================
-mongoose.connect(process.env.MONGO_URL)
-  .then(() => console.log("MongoDB Connected ✅"))
-  .catch(err => console.log("MongoDB Error ❌", err));
+/* =======================
+   API ROUTES
+======================= */
 
-// ================= START SERVER =================
+// MENU API (FIXED + CONNECTED)
+app.use("/api/menu", menuRoutes);
+
+/* =======================
+   SERVER START
+======================= */
+
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
-  console.log("Server running on port " + PORT);
+  console.log("🚀 Server running on port", PORT);
 });

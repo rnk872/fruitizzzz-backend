@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Fruit Shell Ice Cream 🍧</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <!-- HEADER -->
+  <header class="hero">
+    <h1>🍧 Fruit Shell Ice Cream</h1>
+    <p>Natural fruit shell desserts • shakes • mojitos • salads • combos</p>
+  </header>
+
+  <!-- CATEGORY BUTTONS -->
+  <div class="tabs">
+    <button onclick="showCategory('all')">🍧 All</button>
+    <button onclick="showCategory('icecream')">🍦 Ice Cream</button>
+    <button onclick="showCategory('shakes')">🥤 Shakes</button>
+    <button onclick="showCategory('mojitos')">🍹 Mojitos</button>
+    <button onclick="showCategory('salad')">🥗 Salads</button>
+    <button onclick="showCategory('combo')">🍱 Combos</button>
+  </div>
+
+  <!-- MENU DISPLAY -->
+  <div id="menu">Loading menu...</div>
+
+  <!-- SCRIPT -->
+  <script>
+    // 🌐 Your LIVE backend URL
+    const API = "https://fruitizzzz-backend.onrender.com/api/menu";
+
+    let ALL_MENU = [];
+
+    // 📦 Fetch menu from backend
+    async function loadMenu() {
+      try {
+        const res = await fetch(API);
+        ALL_MENU = await res.json();
+        renderMenu("all");
+      } catch (error) {
+        document.getElementById("menu").innerHTML =
+          "<p style='color:red'>⚠️ Failed to load menu from server</p>";
+      }
+    }
+
+    // 🍧 Render menu based on category
+    function renderMenu(category) {
+      const container = document.getElementById("menu");
+      container.innerHTML = "";
+
+      let filtered = ALL_MENU;
+
+      if (category !== "all") {
+        filtered = ALL_MENU.filter(item => item.category === category);
+      }
+
+      filtered.forEach(item => {
+
+        // 🏷️ Badge system (future-ready)
+        let badge = "";
+
+        if (item.bestSeller) {
+          badge += "🔥 Best Seller ";
+        }
+
+        if (item.season === "summer") {
+          badge += "☀️ Summer Special ";
+        }
+
+        if (item.season === "winter") {
+          badge += "❄️ Winter Special ";
+        }
+
+        const div = document.createElement("div");
+        div.className = "card";
+
+        div.innerHTML = `
+          <h3>${item.name}</h3>
+          <p>${badge}</p>
+          <p>₹${item.price}</p>
+          <button onclick="orderItem('${item.name}')">Order Now</button>
+        `;
+
+        container.appendChild(div);
+      });
+    }
+
+    // 📂 Category switch
+    function showCategory(cat) {
+      renderMenu(cat);
+    }
+
+    // 🛒 Order action (basic for now)
+    function orderItem(name) {
+      alert("Order placed: " + name + " 🍧");
+    }
+
+    // 🚀 INIT
+    loadMenu();
+  </script>
+
+</body>
+
+</html>
