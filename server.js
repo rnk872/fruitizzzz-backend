@@ -22,8 +22,20 @@ app.use(express.json());
    DATABASE CONNECTION
 ========================= */
 mongoose.connect(process.env.MONGO_URL)
-  .then(() => console.log("🍃 MongoDB Connected"))
-  .catch(err => console.log("MongoDB Error ❌", err));
+  .then(() => {
+    console.log("🍃 MongoDB Connected");
+
+    const PORT = process.env.PORT || 5000;
+
+    app.listen(PORT, () => {
+      console.log(`🚀 Server running on port ${PORT}`);
+    });
+
+  })
+  .catch(err => {
+    console.log("MongoDB Error ❌", err);
+  });
+
 
 /* =========================
    ROUTES IMPORT
@@ -103,10 +115,6 @@ app.use((err, req, res, next) => {
 /* =========================
    START SERVER
 ========================= */
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-});
 
 
 
