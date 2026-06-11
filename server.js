@@ -23,6 +23,9 @@ mongoose.connect(process.env.MONGO_URL)
 ======================= */
 const menuRoutes = require("./routes/menu");
 
+/* ⭐ IMPORTANT FIX */
+app.use("/api/menu", menuRoutes);
+
 /* =======================
    BASIC ROUTES
 ======================= */
@@ -41,16 +44,8 @@ app.get("/test", (req, res) => {
 });
 
 /* =======================
-   API ROUTES
-======================= */
-
-// MENU API (FIXED + CONNECTED)
-app.use("/api/menu", menuRoutes);
-
-/* =======================
    SERVER START
 ======================= */
-
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
