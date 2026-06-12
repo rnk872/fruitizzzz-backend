@@ -21,7 +21,14 @@ app.use(express.json());
 /* =========================
    DATABASE CONNECTION
 ========================= */
-mongoose.connect(process.env.MONGO_URL)
+const MONGO_URL = process.env.MONGO_URL;
+
+if (!MONGO_URL) {
+  console.error("❌ MONGO_URL is missing in Render environment variables");
+  process.exit(1);
+}
+
+mongoose.connect(MONGO_URL)
   .then(() => {
     console.log("🍃 MongoDB Connected");
 
@@ -33,7 +40,8 @@ mongoose.connect(process.env.MONGO_URL)
 
   })
   .catch(err => {
-    console.log("MongoDB Error ❌", err);
+    console.error("MongoDB Error ❌", err);
+    process.exit(1);
   });
 
 
