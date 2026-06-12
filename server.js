@@ -4,13 +4,10 @@ const mongoose = require("mongoose");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
 
-const app = express();
+const bcrypt = require("bcryptjs");
+const User = require("./models/User");
 
-/* =========================
-   ADMIN CREDENTIALS
-========================= */
-const ADMIN_USER = "admin";
-const ADMIN_PASS = "12345";
+const app = express();
 
 /* =========================
    MIDDLEWARE
@@ -42,85 +39,68 @@ mongoose.connect(MONGO_URL)
     console.log("MongoDB Error ❌", err);
   });
 
-
 /* =========================
-   ROUTES IMPORT
+   SIGNUP ROUTE
 ========================= */
-const menuRoutes = require("./routes/menu");
-const orderRoutes = require("./routes/order");
-const adminRoutes = require("./routes/admin");
+app.post("/api/auth/signup", async (req, res) => {
+  try {
+    const { username, password } = req.body;
 
-/* =========================
-   HEALTH CHECK
-========================= */
-app.get("/", (req, res) => {
-  res.send("🍓 Fruitizzzz backend running successfully 🚀");
+    const existingUser = await User.findOne({ username });
+    if (existingUser) {
+      return res.status(400).json({ message: "User already exists" });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const newUser = new User({
+      username,
+      password: hashedPassword
+    });
+
+    await newUser.save();
+
+    res.json({ success: true, message: "Signup successful" });
+
+  } catch (err) {
+    res.status(500).json({ message: "Error", err });
+  }
 });
 
-app.get("/health", (req, res) => {
-  res.json({ status: "ok" });
-});
-
 /* =========================
-   ADMIN LOGIN API
+   LOGIN ROUTE
 ========================= */
-app.post("/api/admin/login", (req, res) => {
-  const { username, password } = req.body;
+app.post("/api/auth/login", async (req, res) => {
+  try {
+    const { username, password } = req.body;
 
-  if (username === ADMIN_USER && password === ADMIN_PASS) {
+    const user = await User.findOne({ username });
+    if (!user) {
+      return res.status(400).json({ message: "User not found" });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Invalid password" });
+    }
+
     const token = jwt.sign(
-      { role: "admin" },
-      "secretkey",
-      { expiresIn: "1d" }
+      { id: user._id, username: user.username },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
     );
 
-    return res.json({
+    res.json({
       success: true,
+      message: "Login successful",
       token
     });
-  }
 
-  return res.status(401).json({
-    success: false,
-    message: "Invalid credentials"
-  });
-});
-
-/* =========================
-   SIMPLE ADMIN AUTH CHECK
-========================= */
-function verifyAdmin(req, res, next) {
-  const token = req.headers.authorization;
-
-  if (!token) {
-    return res.status(403).json({ message: "No token provided" });
-  }
-
-  try {
-    jwt.verify(token, "secretkey");
-    next();
   } catch (err) {
-    return res.status(403).json({ message: "Invalid token" });
+    res.status(500).json({ message: "Error", err });
   }
-}
-
-/* =========================
-   API ROUTES
-========================= */
-app.use("/api/menu", menuRoutes);
-app.use("/api/order", orderRoutes);
-app.use("/api/admin", adminRoutes);
-/* =========================
-   ERROR HANDLER
-========================= */
-app.use((err, req, res, next) => {
-  console.error(err);
-  res.status(500).json({ message: "Server error" });
 });
 
-/* =========================
-   START SERVER
-========================= */
 
 
 
