@@ -42,6 +42,29 @@ mongoose.connect(MONGO_URL)
 /* =========================
    SIGNUP ROUTE
 ========================= */
+/* =========================
+   MENU API
+========================= */
+app.get("/api/menu", (req, res) => {
+  res.json([
+    {
+      _id: "1",
+      name: "Mango Shake",
+      price: 99
+    },
+    {
+      _id: "2",
+      name: "Strawberry Shake",
+      price: 119
+    },
+    {
+      _id: "3",
+      name: "Chocolate Shake",
+      price: 129
+    }
+  ]);
+});
+
 app.post("/api/auth/signup", async (req, res) => {
   try {
     const { username, password } = req.body;
