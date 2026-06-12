@@ -24,7 +24,7 @@ app.use(express.json());
 const MONGO_URL = process.env.MONGO_URL;
 
 if (!MONGO_URL) {
-  console.error("❌ MONGO_URL is missing in Render environment variables");
+  console.error("❌ MONGO_URL is not defined in environment variables");
   process.exit(1);
 }
 
@@ -37,11 +37,9 @@ mongoose.connect(MONGO_URL)
     app.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
     });
-
   })
   .catch(err => {
-    console.error("MongoDB Error ❌", err);
-    process.exit(1);
+    console.log("MongoDB Error ❌", err);
   });
 
 
