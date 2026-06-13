@@ -1,108 +1,148 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html>
 <head>
-  <meta charset="UTF-8">
-  <title>Fruit Shell Ice Cream 🍧</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fruitizzzz Premium</title>
+
+<style>
+body {
+  font-family: Arial;
+  background: #0f0f1a;
+  color: white;
+  margin: 0;
+}
+
+header {
+  background: #ff4d6d;
+  padding: 15px;
+  text-align: center;
+  font-size: 20px;
+}
+
+.container { padding: 15px; }
+
+input, button {
+  width: 100%;
+  padding: 10px;
+  margin: 6px 0;
+  border-radius: 6px;
+  border: none;
+}
+
+button {
+  background: #ff4d6d;
+  color: white;
+  cursor: pointer;
+}
+
+.card {
+  background: #1c1c2b;
+  padding: 10px;
+  margin: 8px 0;
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+}
+h2 { color: #ff8fa3; margin-top: 20px; }
+</style>
 </head>
 
 <body>
 
-  <!-- HEADER -->
-  <header class="hero">
-    <h1>🍧 Fruit Shell Ice Cream</h1>
-    <p>Natural fruit shell desserts • shakes • mojitos • salads • combos</p>
-  </header>
+<header>🍓 Fruitizzzz Premium App</header>
 
-  <!-- CATEGORY BUTTONS -->
-  <div class="tabs">
-    <button onclick="showCategory('all')">🍧 All</button>
-    <button onclick="showCategory('icecream')">🍦 Ice Cream</button>
-    <button onclick="showCategory('shakes')">🥤 Shakes</button>
-    <button onclick="showCategory('mojitos')">🍹 Mojitos</button>
-    <button onclick="showCategory('salad')">🥗 Salads</button>
-    <button onclick="showCategory('combo')">🍱 Combos</button>
-  </div>
+<div class="container">
 
-  <!-- MENU DISPLAY -->
-  <div id="menu">Loading menu...</div>
+<h3>Login</h3>
+<input id="username" placeholder="Username">
+<input id="password" type="password" placeholder="Password">
+<button onclick="login()">Login</button>
 
-  <!-- SCRIPT -->
-  <script>
-    // 🌐 Your LIVE backend URL
-    const API = "https://fruitizzzz-backend.onrender.com/api/menu";
+<p id="status"></p>
+<p id="user"></p>
 
-    let ALL_MENU = [];
+<button onclick="loadItems()">Load Menu</button>
 
-    // 📦 Fetch menu from backend
-    async function loadMenu() {
-      try {
-        const res = await fetch(API);
-        ALL_MENU = await res.json();
-        renderMenu("all");
-      } catch (error) {
-        document.getElementById("menu").innerHTML =
-          "<p style='color:red'>⚠️ Failed to load menu from server</p>";
-      }
+<div id="menu"></div>
+
+</div>
+
+<script>
+const API = "http://127.0.0.1:3000";
+
+/* LOGIN */
+async function login() {
+  try {
+    const res = await fetch(API + "/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        username: document.getElementById("username").value,
+        password: document.getElementById("password").value
+      })
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      document.getElementById("status").innerText = "Login Successful";
+      document.getElementById("user").innerText =
+        "Welcome " + data.user.name;
+    } else {
+      document.getElementById("status").innerText = data.message;
     }
+  } catch (e) {
+    document.getElementById("status").innerText = "Server Error";
+  }
+}
 
-    // 🍧 Render menu based on category
-    function renderMenu(category) {
-      const container = document.getElementById("menu");
-      container.innerHTML = "";
+/* LOAD ITEMS */
+async function loadItems() {
+  try {
+    const res = await fetch(API + "/api/items");
+    const data = await res.json();
 
-      let filtered = ALL_MENU;
+    let html = "";
 
-      if (category !== "all") {
-        filtered = ALL_MENU.filter(item => item.category === category);
-      }
+    const c = data.categories;
 
-      filtered.forEach(item => {
-
-        // 🏷️ Badge system (future-ready)
-        let badge = "";
-
-        if (item.bestSeller) {
-          badge += "🔥 Best Seller ";
-        }
-
-        if (item.season === "summer") {
-          badge += "☀️ Summer Special ";
-        }
-
-        if (item.season === "winter") {
-          badge += "❄️ Winter Special ";
-        }
-
-        const div = document.createElement("div");
-        div.className = "card";
-
-        div.innerHTML = `
-          <h3>${item.name}</h3>
-          <p>${badge}</p>
-          <p>₹${item.price}</p>
-          <button onclick="orderItem('${item.name}')">Order Now</button>
-        `;
-
-        container.appendChild(div);
+    for (let key in c) {
+      html += `<h2>${key}</h2>`;
+      c[key].forEach(i => {
+        html += `<div class="card"><span>${i.name}</span><span>₹${i.price}</span></div>`;
       });
     }
 
-    // 📂 Category switch
-    function showCategory(cat) {
-      renderMenu(cat);
-    }
+    html += "<h2>Combos</h2>";
+    data.combos.forEach(i => {
+      html += `<div class="card"><span>${i.name}</span><span>₹${i.price}</span></div>`;
+    });
 
-    // 🛒 Order action (basic for now)
-    function orderItem(name) {
-      alert("Order placed: " + name + " 🍧");
-    }
+    html += `<h2>Special Dish</h2>
+      <div class="card">
+        <span>${data.specialDish.name}</span>
+        <span>₹${data.specialDish.price}</span>
+      </div>`;
 
-    // 🚀 INIT
-    loadMenu();
-  </script>
+    html += `<h2>Signature Dish</h2>
+      <div class="card">
+        <span>${data.signatureDish.name}</span>
+        <span>₹${data.signatureDish.price}</span>
+      </div>`;
+
+    document.getElementById("menu").innerHTML = html;
+
+  } catch (e) {
+    document.getElementById("menu").innerHTML =
+      "Failed to load items";
+  }
+}
+</script>
 
 </body>
-
 </html>
+
+
+
+

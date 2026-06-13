@@ -6,9 +6,6 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-console.log("🚀 Fruitizzzz Server Booting...");
-console.log("📦 Loading APIs...");
-
 /* ROOT */
 app.get("/", (req, res) => {
   res.send("Fruitizzzz Backend Running 🚀");
@@ -18,10 +15,7 @@ app.get("/", (req, res) => {
 app.post("/api/auth/login", (req, res) => {
   const { username, password } = req.body;
 
-  console.log("🔐 LOGIN REQUEST:", req.body);
-
   if (username === "admin" && password === "1234") {
-    console.log("✅ LOGIN SUCCESS");
     return res.json({
       success: true,
       token: "demo-token",
@@ -29,7 +23,6 @@ app.post("/api/auth/login", (req, res) => {
     });
   }
 
-  console.log("❌ LOGIN FAILED");
   return res.json({
     success: false,
     message: "Invalid credentials"
@@ -38,8 +31,6 @@ app.post("/api/auth/login", (req, res) => {
 
 /* ITEMS API */
 app.get("/api/items", (req, res) => {
-  console.log("📦 ITEMS API CALLED");
-
   res.json({
     fruitShellIceCreams: [
       { name: "Mango Ice Cream", price: 60 },
@@ -72,14 +63,16 @@ app.get("/api/items", (req, res) => {
     ],
 
     combos: [
-      { name: "Ice Cream Combo", price: 150 },
-      { name: "Shake Combo", price: 160 },
-      { name: "Mojito Combo", price: 170 }
+      { name: "Ice Cream + Shake Combo", price: 150 },
+      { name: "Mojito + Brownie Combo", price: 180 },
+      { name: "Family Combo Pack", price: 250 },
+      { name: "Couple Combo", price: 199 },
+      { name: "Party Special Combo", price: 399 }
     ],
 
     specialDish: {
       name: "Fruitizzzz Volcano Sundae",
-      price: 250
+      price: 299
     },
 
     signatureDish: {
@@ -89,10 +82,25 @@ app.get("/api/items", (req, res) => {
   });
 });
 
+/* START SERVER */
 const PORT = process.env.PORT || 3000;
+
 app.listen(PORT, () => {
-  console.log("================================");
-  console.log("🚀 Server Running Successfully");
-  console.log("🌐 http://127.0.0.1:" + PORT);
-  console.log("================================");
+  console.log("Server running on port " + PORT);
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
