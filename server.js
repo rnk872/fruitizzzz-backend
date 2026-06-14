@@ -2,9 +2,9 @@ const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
 const jwt = require("jsonwebtoken");
+const bcrypt = require("bcryptjs");
 require("dotenv").config();
 
-const bcrypt = require("bcryptjs");
 const User = require("./models/User");
 
 const app = express();
@@ -14,6 +14,13 @@ const app = express();
 ========================= */
 app.use(cors());
 app.use(express.json());
+
+/* =========================
+   HEALTH CHECK
+========================= */
+app.get("/", (req, res) => {
+  res.send("🍓 Fruitizzzz Backend Running");
+});
 
 /* =========================
    DATABASE CONNECTION
@@ -32,7 +39,10 @@ mongoose.connect(MONGO_URL)
     const PORT = process.env.PORT || 5000;
 
     app.listen(PORT, () => {
-      console.log(`🚀 Server running on port ${PORT}`);
+      console.log("================================");
+      console.log("🚀 Server Running");
+      console.log("🌐 Port:", PORT);
+      console.log("================================");
     });
   })
   .catch(err => {
@@ -40,71 +50,52 @@ mongoose.connect(MONGO_URL)
   });
 
 /* =========================
-   SIGNUP ROUTE
+   REGISTER (optional safe system)
 ========================= */
-/* =========================
-   MENU API
-========================= */
-app.get("/api/menu", (req, res) => {
-  res.json([
-    {
-      _id: "1",
-      name: "Mango Shake",
-      price: 99
-    },
-    {
-      _id: "2",
-      name: "Strawberry Shake",
-      price: 119
-    },
-    {
-      _id: "3",
-      name: "Chocolate Shake",
-      price: 129
-    }
-  ]);
-});
-
-app.post("/api/auth/signup", async (req, res) => {
+app.post("/api/auth/register", async (req, res) => {
   try {
     const { username, password } = req.body;
 
     const existingUser = await User.findOne({ username });
     if (existingUser) {
-      return res.status(400).json({ message: "User already exists" });
+      return res.json({ success: false, message: "User already exists" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const newUser = new User({
+    const user = await User.create({
       username,
       password: hashedPassword
     });
 
-    await newUser.save();
-
-    res.json({ success: true, message: "Signup successful" });
+    res.json({
+      success: true,
+      message: "User created",
+      userId: user._id
+    });
 
   } catch (err) {
-    res.status(500).json({ message: "Error", err });
+    res.json({ success: false, message: err.message });
   }
 });
 
 /* =========================
-   LOGIN ROUTE
+   LOGIN
 ========================= */
 app.post("/api/auth/login", async (req, res) => {
   try {
     const { username, password } = req.body;
 
     const user = await User.findOne({ username });
+
     if (!user) {
-      return res.status(400).json({ message: "User not found" });
+      return res.json({ success: false, message: "User not found" });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
+
     if (!isMatch) {
-      return res.status(400).json({ message: "Invalid password" });
+      return res.json({ success: false, message: "Wrong password" });
     }
 
     const token = jwt.sign(
@@ -120,12 +111,35 @@ app.post("/api/auth/login", async (req, res) => {
     });
 
   } catch (err) {
-    res.status(500).json({ message: "Error", err });
+    res.json({ success: false, message: err.message });
   }
 });
 
+/* =========================
+   PROFILE (REAL USERNAME FROM DB)
+========================= */
+app.get("/api/auth/me", async (req, res) => {
+  try {
+    const token = req.headers.authorization;
 
+    if (!token) {
+      return res.json({ success: false, message: "No token provided" });
+    }
 
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
+    const user = await User.findById(decoded.id);
 
+    if (!user) {
+      return res.json({ success: false, message: "User not found" });
+    }
 
+    res.json({
+      success: true,
+      username: user.username
+    });
+
+  } catch (err) {
+    res.json({ success: false, message: "Invalid token" });
+  }
+});

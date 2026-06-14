@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>User Profile - Fruitizzzz</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="profile-container">
+
+  <h2>👤 User Profile</h2>
+
+  <div class="card">
+    <p><b>Username:</b> <span id="username">Loading...</span></p>
+    <p><b>Status:</b> <span id="status">Checking...</span></p>
+  </div>
+
+  <button onclick="logout()" class="logout-btn">Logout</button>
+
+</div>
+
+<script>
+const API = "https://fruitizzzz-backend.onrender.com";
+
+// 🔐 Protect page
+const token = localStorage.getItem("token");
+const user = localStorage.getItem("user");
+
+if (!token) {
+  alert("Please login first");
+  window.location.href = "login.html";
+}
+
+// Show user data
+document.getElementById("username").innerText = user || "Unknown";
+document.getElementById("status").innerText = "Logged In ✅";
+
+// Logout function
+function logout() {
+  localStorage.removeItem("token");
+  localStorage.removeItem("user");
+
+  alert("Logged out successfully");
+  window.location.href = "login.html";
+}
+</script>
+
+</body>
+</html>
